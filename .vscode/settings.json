@@ -1,0 +1,26 @@
+{
+    "files.exclude": {
+        "**/node_modules/**": true,
+        "**/@eaDir/**": true,
+    },
+    "sqltools.connections": [
+        {
+            "connectionTimeout": 15,
+            "mssqlOptions": {
+                "appName": "SQLTools",
+                "useUTC": true,
+                "encrypt": true,
+                "trustServerCertificate": true
+            },
+            "previewLimit": 50,
+            "server": "74.81.167.109",
+            "port": 1433,
+            "driver": "MSSQL",
+            "name": "KK",
+            "database": "kk",
+            "username": "sa",
+            "password": "rmhsql"
+        }
+    ],
+    "workbench.colorTheme": "Solarized Dark"
+}
