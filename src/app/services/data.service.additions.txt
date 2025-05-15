@@ -1,0 +1,173 @@
+  /**
+   * Gets sales data by department for the specified time period
+   * @param periodType - The period type: day, month, or year
+   * @returns Observable with department sales data
+   */
+  getDepartmentSales(periodType: 'day'|'month'|'year' = 'month'): Observable<any[]> {
+    let dateFilter = '';
+    
+    switch(periodType) {
+      case 'day':
+        dateFilter = `WHERE CONVERT(date, [Transaction].[Time]) = CAST(GETDATE() AS DATE)`;
+        break;
+      case 'month':
+        dateFilter = `WHERE YEAR([Transaction].[Time]) = YEAR(GETDATE()) AND MONTH([Transaction].[Time]) = MONTH(GETDATE())`;
+        break;
+      case 'year':
+        dateFilter = `WHERE YEAR([Transaction].[Time]) = YEAR(GETDATE())`;
+        break;
+    }
+    
+    const sql = `SELECT 
+                  Department.Name as Department,
+                  round(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity),2) AS Total 
+                 FROM [transaction] 
+                 LEFT JOIN TransactionEntry ON [Transactionentry].TransactionNumber = [Transaction].TransactionNumber 
+                 LEFT JOIN Item ON TransactionEntry.ItemID = Item.ID
+                 LEFT JOIN Department ON Item.DepartmentID = Department.ID
+                 ${dateFilter}
+                 GROUP BY Department.Name
+                 ORDER BY Total DESC`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets the top selling items for the specified time period
+   * @param limit - Number of items to return
+   * @param period - The period type: day, month, or year
+   * @returns Observable with top selling items data
+   */
+  getTopSellingItems(limit: number = 10, period: 'day'|'month'|'year' = 'month'): Observable<any[]> {
+    let dateFilter = '';
+    
+    switch(period) {
+      case 'day':
+        dateFilter = `AND CONVERT(date, [Transaction].[Time]) = CAST(GETDATE() AS DATE)`;
+        break;
+      case 'month':
+        dateFilter = `AND YEAR([Transaction].[Time]) = YEAR(GETDATE()) AND MONTH([Transaction].[Time]) = MONTH(GETDATE())`;
+        break;
+      case 'year':
+        dateFilter = `AND YEAR([Transaction].[Time]) = YEAR(GETDATE())`;
+        break;
+    }
+    
+    const sql = `SELECT TOP ${limit} 
+                  Item.Description,
+                  SUM(TransactionEntry.Quantity) as QuantitySold,
+                  round(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity),2) AS TotalSales
+                 FROM TransactionEntry
+                 JOIN Item ON TransactionEntry.ItemID = Item.ID
+                 JOIN [Transaction] ON TransactionEntry.TransactionNumber = [Transaction].TransactionNumber
+                 WHERE 1=1 ${dateFilter}
+                 GROUP BY Item.Description
+                 ORDER BY QuantitySold DESC`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets overall inventory statistics
+   * @returns Observable with inventory statistics
+   */
+  getInventoryStats(): Observable<any> {
+    const sql = `SELECT 
+                  COUNT(Item.ID) as TotalItems,
+                  SUM(Item.Quantity) as TotalInventory,
+                  SUM(Item.Quantity * Item.Cost) as TotalValue,
+                  SUM(CASE WHEN Item.Quantity = 0 THEN 1 ELSE 0 END) as OutOfStock
+                 FROM Item`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets inventory statistics by department
+   * @returns Observable with inventory data grouped by department
+   */
+  getInventoryByDepartment(): Observable<any[]> {
+    const sql = `SELECT 
+                  Department.Name as Department,
+                  COUNT(Item.ID) as ItemCount,
+                  SUM(Item.Quantity) as Quantity,
+                  SUM(Item.Quantity * Item.Cost) as Value
+                 FROM Item
+                 LEFT JOIN Department ON Item.DepartmentID = Department.ID
+                 GROUP BY Department.Name
+                 ORDER BY Value DESC`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets profit margin data by department for the specified time period
+   * @param period - The period type: day, month, or year
+   * @returns Observable with profit margin data
+   */
+  getProfitMarginByDepartment(period: 'day'|'month'|'year' = 'month'): Observable<any[]> {
+    let dateFilter = '';
+    
+    switch(period) {
+      case 'day':
+        dateFilter = `WHERE CONVERT(date, [Transaction].[Time]) = CAST(GETDATE() AS DATE)`;
+        break;
+      case 'month':
+        dateFilter = `WHERE YEAR([Transaction].[Time]) = YEAR(GETDATE()) AND MONTH([Transaction].[Time]) = MONTH(GETDATE())`;
+        break;
+      case 'year':
+        dateFilter = `WHERE YEAR([Transaction].[Time]) = YEAR(GETDATE())`;
+        break;
+    }
+    
+    const sql = `SELECT 
+                  Department.Name as Department,
+                  round(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity),2) AS Sales,
+                  round(SUM(cast(TransactionEntry.Cost AS numeric) * TransactionEntry.Quantity),2) AS Cost,
+                  round(SUM((cast(TransactionEntry.Price AS numeric) - cast(TransactionEntry.Cost AS numeric)) * TransactionEntry.Quantity),2) AS Profit,
+                  round(SUM((cast(TransactionEntry.Price AS numeric) - cast(TransactionEntry.Cost AS numeric)) * TransactionEntry.Quantity) / 
+                        NULLIF(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity), 0) * 100,2) AS MarginPercent
+                 FROM [transaction] 
+                 JOIN TransactionEntry ON TransactionEntry.TransactionNumber = [Transaction].TransactionNumber 
+                 JOIN Item ON TransactionEntry.ItemID = Item.ID
+                 JOIN Department ON Item.DepartmentID = Department.ID
+                 ${dateFilter}
+                 GROUP BY Department.Name
+                 ORDER BY Profit DESC`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets daily sales data by hour for the specified date
+   * @param date - The date to get sales for (default: today)
+   * @returns Observable with hourly sales data
+   */
+  getDailySalesByHour(date: string = new Date().toISOString().split('T')[0]): Observable<any[]> {
+    const sql = `SELECT 
+                  DATEPART(HOUR, [Transaction].[Time]) as Hour,
+                  round(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity),2) AS Total 
+                 FROM [transaction] 
+                 LEFT JOIN TransactionEntry ON [Transactionentry].TransactionNumber = [Transaction].TransactionNumber 
+                 WHERE CONVERT(date, [Transaction].[Time]) = '${date}'
+                 GROUP BY DATEPART(HOUR, [Transaction].[Time])
+                 ORDER BY Hour`;
+    
+    return this.executeQuery(sql);
+  }
+
+  /**
+   * Gets total sales for the specified date
+   * @param date - The date to get total for (default: today)
+   * @returns Observable with daily total
+   */
+  getDailyTotal(date: string = new Date().toISOString().split('T')[0]): Observable<any[]> {
+    const sql = `SELECT 
+                  CAST('${date}' AS DATE) as Date,
+                  round(SUM(cast(TransactionEntry.Price AS numeric) * TransactionEntry.Quantity),2) AS Total 
+                 FROM [transaction] 
+                 LEFT JOIN TransactionEntry ON [Transactionentry].TransactionNumber = [Transaction].TransactionNumber 
+                 WHERE CONVERT(date, [Transaction].[Time]) = '${date}'`;
+    
+    return this.executeQuery(sql);
+  }

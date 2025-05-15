@@ -1,13 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, tap } from 'rxjs';
-import { ApiService } from '../../../core/services/api.service';
+import { DataService } from '../../../services/data.service';
 import { Transaction } from '../../../models/transaction.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TransactionService {
-  private apiService = inject(ApiService);
+  private dataService = inject(DataService);
   
   transactions = signal<Transaction[]>([]);
   loading = signal<boolean>(false);
@@ -15,7 +15,7 @@ export class TransactionService {
 
   getTransactions(): Observable<Transaction[]> {
     this.loading.set(true);
-    return this.apiService.getTransactions().pipe(
+    return this.dataService.getAllTransactions().pipe(
       tap(data => {
         this.transactions.set(data);
         this.loading.set(false);
@@ -28,5 +28,9 @@ export class TransactionService {
         throw err;
       })
     );
+  }
+  
+  getTransactionDetails(id: number): Observable<any[]> {
+    return this.dataService.getTransactionEntries(id);
   }
 }

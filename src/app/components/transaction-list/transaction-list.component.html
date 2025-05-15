@@ -1,0 +1,41 @@
+<div class="transaction-container">
+  <h2>Transactions</h2>
+  
+  <div *ngIf="loading" class="loading">
+    Loading transactions...
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+  
+  <table *ngIf="transactions.length > 0 && !loading">
+    <thead>
+      <tr>
+        <th>Transaction Number</th>
+        <th>Date</th>
+        <th>Total</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let transaction of transactions">
+        <td>{{ transaction.TransactionNumber }}</td>
+        <td>{{ transaction.Time | date:'short' }}</td>
+        <td>{{ transaction.Total | currency }}</td>
+        <td>
+          <button (click)="viewDetails(transaction.TransactionNumber)">View Details</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <app-transaction-details 
+    *ngIf="selectedTransactionNumber" 
+    [transactionNumber]="selectedTransactionNumber">
+  </app-transaction-details>
+  
+  <div *ngIf="transactions.length === 0 && !loading && !error" class="no-data">
+    No transactions found.
+  </div>
+</div>

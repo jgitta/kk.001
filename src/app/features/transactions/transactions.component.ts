@@ -1,5 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 import { TransactionService } from './services/transaction.service';
 
 @Component({
@@ -8,70 +9,64 @@ import { TransactionService } from './services/transaction.service';
   imports: [CommonModule],
   template: `
     <div class="transactions-container">
-      <h3>Recent Transactions</h3>
+      <div *ngIf="loading()">Loading transaction data...</div>
+      <div *ngIf="error()" class="error-message">{{ error() }}</div>
       
-      <div *ngIf="transactionService.loading()" class="loading">
-        Loading transaction data...
+      <div *ngIf="!loading() && transactions().length > 0">
+        <div>Recent transactions: {{ transactions().length }}</div>
+        <div>Total value: {{ totalValue() | currency }}</div>
       </div>
-      
-      <div *ngIf="transactionService.error()" class="error">
-        {{ transactionService.error() }}
-      </div>
-      
-      <table *ngIf="!transactionService.loading() && !transactionService.error()">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Time</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let transaction of transactionService.transactions()">
-            <td>{{ transaction.TransactionNumber }}</td>
-            <td>{{ transaction.Time | date:'medium' }}</td>
-            <td>{{ transaction.Total | currency }}</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   `,
   styles: `
     .transactions-container {
-      height: 100%;
-      overflow: auto;
+      padding: 10px;
     }
     
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    
-    .loading {
-      padding: 16px;
-      text-align: center;
-      color: #666;
-    }
-    
-    .error {
-      padding: 16px;
+    .error-message {
       color: red;
-      background: #ffecec;
-      border: 1px solid #f5aca6;
-      border-radius: 4px;
+      padding: 5px;
     }
   `
 })
 export class TransactionsComponent implements OnInit {
-  transactionService = inject(TransactionService);
+  // Use transaction service instead of directly using data service
+  private transactionService = inject(TransactionService);
+  
+  // Define signals
+  transactions = signal<any[]>([]);
+  loading = signal<boolean>(false);
+  error = signal<string | null>(null);
+  totalValue = signal<number>(0);
   
   ngOnInit(): void {
-    this.transactionService.getTransactions().subscribe();
+    this.loadTransactions();
+  }
+  
+  loadTransactions(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.transactionService.getTransactions().subscribe({
+      next: () => {
+        // Use the data from the service signal
+        this.transactions.set(this.transactionService.transactions().slice(0, 10));
+        this.loading.set(false);
+        this.calculateTotalValue();
+        console.log('Transaction data loaded:', this.transactions().length, 'transactions');
+      },
+      error: (err) => {
+        console.error('Error loading transactions:', err);
+        this.error.set(`Failed to load transaction data: ${err.message}`);
+        this.loading.set(false);
+      }
+    });
+  }
+  
+  calculateTotalValue(): void {
+    const total = this.transactions().reduce((sum, transaction) => {
+      return sum + transaction.Total;
+    }, 0);
+    this.totalValue.set(total);
   }
 }

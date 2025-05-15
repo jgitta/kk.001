@@ -1,0 +1,40 @@
+<div class="details-container">
+  <h3>Transaction #{{ transactionNumber }} Details</h3>
+  
+  <div *ngIf="loading" class="loading">
+    Loading transaction details...
+  </div>
+  
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+  
+  <table *ngIf="entries.length > 0 && !loading">
+    <thead>
+      <tr>
+        <th>Quantity</th>
+        <th>Description</th>
+        <th>Cost</th>
+        <th>GM %</th>
+        <th>Profit</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of entries">
+        <td>{{ entry.Quantity }}</td>
+        <td>{{ entry.Description }}</td>
+        <td>{{ entry.Cost | currency }}</td>
+        <td>{{ entry['GM %'] | number:'1.2-2' }}%</td>
+        <td>{{ entry.Profit | currency }}</td>
+        <td>{{ entry.Price | currency }}</td>
+        <td>{{ entry.Total | currency }}</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div *ngIf="entries.length === 0 && !loading && !error" class="no-data">
+    No entries found for this transaction.
+  </div>
+</div>

@@ -1,13 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, tap } from 'rxjs';
-import { ApiService } from '../../../core/services/api.service';
+import { DataService } from '../../../services/data.service';
 import { InventoryItem } from '../../../models/inventory.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InventoryService {
-  private apiService = inject(ApiService);
+  private dataService = inject(DataService);
   
   inventory = signal<InventoryItem[]>([]);
   loading = signal<boolean>(false);
@@ -15,7 +15,7 @@ export class InventoryService {
 
   getInventory(): Observable<InventoryItem[]> {
     this.loading.set(true);
-    return this.apiService.getInventory().pipe(
+    return this.dataService.getInventory().pipe(
       tap(data => {
         this.inventory.set(data);
         this.loading.set(false);

@@ -22,6 +22,10 @@ import { TransactionsComponent } from '../transactions/transactions.component';
     TransactionsComponent
   ],
   template: `
+    <div class="dashboard-header">
+      <h1>K&K Dashboard</h1>
+    </div>
+    
     <div class="dashboard-container">
       <div class="row">
         <div class="col">
@@ -53,7 +57,7 @@ import { TransactionsComponent } from '../transactions/transactions.component';
           </app-panel-widget>
         </div>
         <div class="col">
-          <app-panel-widget title="Sales by Department" [fixedHeight]="true">
+          <app-panel-widget title="Sales by Department (Top 10)" [fixedHeight]="true">
             <app-department-sales></app-department-sales>
           </app-panel-widget>
         </div>
@@ -61,8 +65,22 @@ import { TransactionsComponent } from '../transactions/transactions.component';
     </div>
   `,
   styles: `
+    .dashboard-header {
+      background-color: #3f51b5;
+      color: white;
+      padding: 16px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 500;
+    }
+    
     .dashboard-container {
-      padding: 16px;
+      padding: 0 16px 16px 16px;
     }
     
     .row {
@@ -75,6 +93,7 @@ import { TransactionsComponent } from '../transactions/transactions.component';
     .col {
       flex: 1 1 calc(33.333% - 1rem);
       min-width: 300px;
+      padding: 0.5rem;
     }
     
     @media (max-width: 1200px) {
@@ -87,6 +106,32 @@ import { TransactionsComponent } from '../transactions/transactions.component';
       .col {
         flex: 1 1 100%;
       }
+    }
+
+    .panel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+      min-height: 450px; /* Increased height */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-content {
+      padding: 15px;
+      flex: 1;
+      overflow: hidden;  /* Prevent scrollbars */
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-gap: 20px;
+      grid-auto-rows: minmax(400px, auto); /* Increase this value from your current setting */
     }
   `
 })

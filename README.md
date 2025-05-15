@@ -35,7 +35,29 @@ ng build
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+## Express Server Setup
+
+To set up the Express backend server:
+
+```bash
+# Install dependencies
+npm install
+
+# Start the server
+npm start
 ```
+
+## Authentication
+
+This project uses Microsoft Authentication Library (MSAL) for authentication. 
+
+```bash
+# If you need to update the authentication library
+npm install @azure/msal-node@latest
+```
+
+Note: Major version updates may require code changes to authentication flows.
 
 ## Running end-to-end tests
 

@@ -1,6 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InventoryService } from './services/inventory.service';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-inventory',
@@ -8,74 +8,65 @@ import { InventoryService } from './services/inventory.service';
   imports: [CommonModule],
   template: `
     <div class="inventory-container">
-      <h3>Inventory</h3>
+      <div *ngIf="loading">Loading inventory data...</div>
+      <div *ngIf="error" class="error-message">{{ error }}</div>
       
-      <div *ngIf="inventoryService.loading()" class="loading">
-        Loading inventory data...
+      <div *ngIf="!loading && inventory.length > 0" class="inventory-stats">
+        <div>Total Items: {{ inventory.length }}</div>
+        <div>Total Value: {{ getTotalInventoryValue() | currency }}</div>
       </div>
-      
-      <div *ngIf="inventoryService.error()" class="error">
-        {{ inventoryService.error() }}
-      </div>
-      
-      <table *ngIf="!inventoryService.loading() && !inventoryService.error()">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Department</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of inventoryService.inventory()">
-            <td>{{ item.ID }}</td>
-            <td>{{ item.Name }}</td>
-            <td>{{ item.Price | currency }}</td>
-            <td>{{ item.Quantity }}</td>
-            <td>{{ item.Department || 'Uncategorized' }}</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   `,
   styles: `
     .inventory-container {
-      height: 100%;
-      overflow: auto;
+      padding: 10px;
     }
     
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    
-    .loading {
-      padding: 16px;
-      text-align: center;
-      color: #666;
-    }
-    
-    .error {
-      padding: 16px;
+    .error-message {
       color: red;
-      background: #ffecec;
-      border: 1px solid #f5aca6;
-      border-radius: 4px;
+      padding: 5px;
+    }
+    
+    .inventory-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+      font-weight: bold;
     }
   `
 })
 export class InventoryComponent implements OnInit {
-  inventoryService = inject(InventoryService);
+  inventory: any[] = [];
+  loading = false;
+  error: string | null = null;
+  
+  constructor(private dataService: DataService) {}
   
   ngOnInit(): void {
-    this.inventoryService.getInventory().subscribe();
+    this.loadInventory();
+  }
+  
+  loadInventory(): void {
+    this.loading = true;
+    this.error = null;
+    
+    this.dataService.getInventory().subscribe({
+      next: (data) => {
+        this.inventory = data;
+        this.loading = false;
+        console.log('Inventory data loaded:', data.length, 'items');
+      },
+      error: (err) => {
+        console.error('Error loading inventory:', err);
+        this.error = `Failed to load inventory data: ${err.message}`;
+        this.loading = false;
+      }
+    });
+  }
+  
+  getTotalInventoryValue(): number {
+    return this.inventory.reduce((sum, item) => {
+      return sum + (item.Price * item.Quantity);
+    }, 0);
   }
 }
