@@ -5,7 +5,6 @@ import { DailySalesComponent } from '../sales/components/daily-sales/daily-sales
 import { YtdSalesComponent } from '../sales/components/ytd-sales/ytd-sales.component';
 import { MtdSalesComponent } from '../sales/components/mtd-sales/mtd-sales.component';
 import { DepartmentSalesComponent } from '../sales/components/department-sales/department-sales.component';
-import { InventoryComponent } from '../inventory/inventory.component';
 import { TransactionsComponent } from '../transactions/transactions.component';
 
 @Component({
@@ -13,12 +12,10 @@ import { TransactionsComponent } from '../transactions/transactions.component';
   standalone: true,
   imports: [
     CommonModule,
-    PanelWidgetComponent,
     DailySalesComponent,
     YtdSalesComponent,
     MtdSalesComponent,
     DepartmentSalesComponent,
-    InventoryComponent,
     TransactionsComponent
   ],
   template: `
@@ -43,10 +40,7 @@ import { TransactionsComponent } from '../transactions/transactions.component';
         </div>
         
         <!-- Data Tables Row -->
-        <div class="chart-item grid-col-span-2">
-          <app-inventory></app-inventory>
-        </div>
-        <div class="chart-item grid-col-span-2">
+        <div class="chart-item grid-col-span-4">
           <app-transactions></app-transactions>
         </div>
       </div>
@@ -90,10 +84,18 @@ import { TransactionsComponent } from '../transactions/transactions.component';
       grid-column: span 2;
     }
     
+    .grid-col-span-4 {
+      grid-column: span 4;
+    }
+    
     /* Responsive adjustments */
     @media (max-width: 1400px) {
       .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .grid-col-span-4 {
+        grid-column: span 2;
       }
     }
     
@@ -102,7 +104,7 @@ import { TransactionsComponent } from '../transactions/transactions.component';
         grid-template-columns: 1fr;
       }
       
-      .grid-col-span-2 {
+      .grid-col-span-2, .grid-col-span-4 {
         grid-column: span 1;
       }
     }
