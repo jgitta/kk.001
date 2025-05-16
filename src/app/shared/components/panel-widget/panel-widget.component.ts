@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="panel">
       <div class="panel-header">
-        <h3>{{title}}</h3>
+        <h3>{{ title }}</h3>
       </div>
       <div class="panel-content" [ngClass]="{'fixed-height': fixedHeight}">
         <ng-content></ng-content>
@@ -46,7 +46,7 @@ import { CommonModule } from '@angular/common';
     }
 
     .panel-content.fixed-height {
-      min-height: 350px; // Increased from 300px to accommodate charts better
+      min-height: 350px; /* Increased from 300px to accommodate charts better */
     }
   `
 })
